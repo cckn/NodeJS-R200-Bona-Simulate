@@ -2,18 +2,12 @@ const express = require('express')
 
 const bodyParser = require('body-parser')
 const app = express()
+const config = require('./config.json')
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
-dummyData = {
-    State: 'CHARGE',
-    ArrVoltage: 40.3,
-    데이터1: '40032 V',
-    SoC: '93 %',
-    Optimization: 1,
-}
-
+let dummyData = {}
 dataSpec = [
     {
         name: 'State',
@@ -53,7 +47,7 @@ dataSpec = [
 
 setInterval(() => {
     dummyData = updatedData(dataSpec)
-}, 1000)
+}, config.updateInterval)
 
 function getRandomValue(min, max, decimalPoint) {
     return (Math.random() * (max - min) + min).toFixed(decimalPoint)
@@ -92,9 +86,7 @@ function getDataHandler(req, res) {
             optimizationLevel <= 10
         ) {
             dataSpec[4].value = optimizationLevel
-            res.send(
-                `${OK_STRING} setoptimizationlevel=${optimizationLevel}`
-            )
+            res.send(`${OK_STRING} setoptimizationlevel=${optimizationLevel}`)
         } else {
             res.send(NG_STRING)
         }
@@ -111,6 +103,6 @@ app.get('/vb.htm', function(req, res) {
     getDataHandler(req, res)
 })
 
-app.listen(80, function() {
-    console.log('Example app listening on port 80!')
+app.listen(config.port, function() {
+    console.log(`Bona Simulator app listening on port ${config.port}!`)
 })
