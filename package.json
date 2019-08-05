@@ -4,14 +4,23 @@
     "description": "",
     "main": "app.js",
     "scripts": {
-        "start": "nodemon src/app.js",
+        "start": "nodemon --exec babel-node src/app.js --delay 1",
+        "mppt": "nodemon --exec babel-node src/mppt60.js --delay 1",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "",
     "license": "ISC",
     "dependencies": {
         "body-parser": "^1.19.0",
-        "express": "^4.17.1"
+        "express": "^4.17.1",
+        "jsmodbus": "^3.1.3",
+        "@babel/core": "^7.5.5",
+        "@babel/node": "^7.5.5",
+        "@babel/preset-env": "^7.5.5",
+        "cookie-parser": "^1.4.4",
+        "helmet": "^3.19.0",
+        "morgan": "^1.9.1",
+        "pug": "^2.0.4"
     },
     "devDependencies": {
         "nodemon": "^1.19.1"

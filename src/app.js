@@ -1,14 +1,19 @@
-const express = require('express')
+import express from 'express'
 
-const bodyParser = require('body-parser')
+import bodyParser from 'body-parser'
+import config from './config.json'
+import logger from 'morgan'
+import helmet from 'helmet'
+
 const app = express()
-const config = require('./config.json')
 
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(helmet())
 app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(logger('dev'))
 
 let dummyData = {}
-dataSpec = [
+const dataSpec = [
     {
         name: 'State',
         value: 'CHARGE',
