@@ -5,6 +5,8 @@ import config from './config.json'
 import logger from 'morgan'
 import helmet from 'helmet'
 
+import Mppt60 from './mppt60'
+
 const app = express()
 
 app.use(helmet())
@@ -53,6 +55,19 @@ const dataSpec = [
 setInterval(() => {
     dummyData = updatedData(dataSpec)
 }, config.updateInterval)
+
+const mppt = new Mppt60('192.168.0.23', 502)
+let d
+
+setInterval(() => {
+    mppt.getRawdata()
+        .then(rawData => mppt.parseData(rawData))
+        .then(data => {
+            d = data
+        })
+
+    // console.log(d)
+}, 1000)
 
 function getRandomValue(min, max, decimalPoint) {
     return (Math.random() * (max - min) + min).toFixed(decimalPoint)

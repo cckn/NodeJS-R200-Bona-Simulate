@@ -1,5 +1,6 @@
 import Modbus from 'jsmodbus'
 import net from 'net'
+import { deflate } from 'zlib'
 
 const socket = new net.Socket()
 const client = new Modbus.client.TCP(socket, 1)
@@ -86,6 +87,8 @@ class Mppt60 {
         return datas
     }
 }
+
+export default Mppt60
 
 if (require.main === module) {
     const mppt = new Mppt60('192.168.0.23', 502)
