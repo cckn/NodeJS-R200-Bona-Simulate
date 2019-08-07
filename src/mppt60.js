@@ -81,7 +81,7 @@ class Mppt60 {
         datas.sweep_vmp = rawDatas[0x3d] * v_pu * 2 ** -15
         datas.sweep_voc = rawDatas[0x3e] * v_pu * 2 ** -15
 
-        datas.amp_hours = (rawDatas[0xe082] * 65536 + rawDatas[0xe083]) * 0.1
+        datas.amp_hours = (rawDatas[0xe082] + (rawDatas[0xe083] >> 16)) * 0.1
         datas.kw_hours = rawDatas[0xe086]
 
         return datas

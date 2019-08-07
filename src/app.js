@@ -9,120 +9,92 @@ import Mppt60 from './mppt60'
 
 const app = express()
 
+const mppt = new Mppt60('192.168.0.23', 502)
+let mpptData
+let minimalData = {}
+let optimizationLevel = 0
+
+const RETURN_CODE = {
+    OK: 'OK',
+    NG: 'NG',
+    UA: 'UA',
+    UW: 'UW',
+}
+
 app.use(helmet())
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(logger('dev'))
 
-let dummyData = {}
-const dataSpec = [
-    {
-        name: 'State',
-        value: 'CHARGE',
-        isRandom: false,
-    },
-    {
-        name: 'ArrVoltage',
-        value: 50,
-        min: 50,
-        max: 70,
-        unit: 'V',
-        isRandom: true,
-    },
-    {
-        name: '전력',
-        value: 10,
-        min: 30,
-        max: 50,
-        unit: 'W',
-        isRandom: true,
-    },
-    {
-        name: 'SoC',
-        value: 30,
-        min: 30,
-        max: 50,
-        unit: '%',
-        isRandom: true,
-    },
-    {
-        name: 'Optimization',
-        value: 0,
-        isRandom: false,
-    },
-]
+const init = () => {
+    setInterval(() => {
+        mppt.getRawdata()
+            .then(rawData => mppt.parseData(rawData))
+            .then(data => {
+                mpptData = data
+                updateMinimalData()
+            })
 
-setInterval(() => {
-    dummyData = updatedData(dataSpec)
-}, config.updateInterval)
-
-const mppt = new Mppt60('192.168.0.23', 502)
-let d
-
-setInterval(() => {
-    mppt.getRawdata()
-        .then(rawData => mppt.parseData(rawData))
-        .then(data => {
-            d = data
-        })
-
-    // console.log(d)
-}, 1000)
-
-function getRandomValue(min, max, decimalPoint) {
-    return (Math.random() * (max - min) + min).toFixed(decimalPoint)
+        console.log(minimalData)
+    }, 1000)
 }
 
-function updatedData(dataSpec) {
-    const data = {}
-
-    dataSpec.map(item => {
-        item.value = item.isRandom
-            ? getRandomValue(item.min, item.max, 2)
-            : item.value
-
-        data[item.name] = `${item.value}${item.unit ? ' ' + item.unit : ''}`
-    })
-
-    return data
+function updateMinimalData() {
+    minimalData.charge_state = mpptData.charge_state
+    minimalData.battery_voltage = `${mpptData.battery_voltage.toFixed(2)} V`
+    minimalData.array_voltage = `${mpptData.array_voltage.toFixed(2)} V`
+    minimalData.array_current = `${mpptData.array_current.toFixed(2)} A`
+    minimalData.optimizationLevel = `${optimizationLevel}`
 }
 
-function getDataHandler(req, res) {
+function getFunctionRouter(req, res) {
     const getData = req.query.getdata
     const setOptimizationLevel = req.query.setoptimizationlevel
-    const OK_STRING = 'OK'
-    const NG_STRING = 'NG'
-    const UA_STRING = 'UA'
-    const UW_STRING = 'UW'
 
     if (getData != undefined) {
-        res.send(`${OK_STRING} ${JSON.stringify(dummyData)}`)
+        getDataHandler(req, res)
     } else if (setOptimizationLevel != undefined) {
-        const optimizationLevel = Number(setOptimizationLevel)
-
-        if (
-            Number.isInteger(optimizationLevel) &&
-            optimizationLevel >= 0 &&
-            optimizationLevel <= 10
-        ) {
-            dataSpec[4].value = optimizationLevel
-            res.send(`${OK_STRING} setoptimizationlevel=${optimizationLevel}`)
-        } else {
-            res.send(NG_STRING)
-        }
+        setOptimizationLevelHandler(req, res)
     } else {
-        res.send(UW_STRING)
+        res.send(RETURN_CODE.UW)
     }
 }
 
+function getDataHandler(req, res) {
+    res.send(`${RETURN_CODE.OK} ${JSON.stringify(minimalData)}`)
+}
+function setOptimizationLevelHandler(req, res) {
+    const setOptimizationLevel = req.query.setoptimizationlevel
+    const optiLevel = Number(setOptimizationLevel)
+
+    if (Number.isInteger(optiLevel) && optiLevel >= 0 && optiLevel <= 10) {
+        optimizationLevel = optiLevel
+        res.send(`${RETURN_CODE.OK} setoptimizationlevel=${optimizationLevel}`)
+    } else {
+        res.send(RETURN_CODE.NG)
+    }
+}
+
+function getHandler(req, res) {
+    res.send(JSON.stringify(mpptData))
+}
+
 app.get('/', function(req, res) {
-    getDataHandler(req, res)
+    getFunctionRouter(req, res)
 })
 
 app.get('/vb.htm', function(req, res) {
-    getDataHandler(req, res)
+    getFunctionRouter(req, res)
+})
+
+app.get('/get', function(req, res) {
+    getHandler(req, res)
 })
 
 app.listen(config.port, function() {
     console.log(`Bona Simulator app listening on port ${config.port}!`)
 })
+
+if (require.main === module) {
+    init()
+}
