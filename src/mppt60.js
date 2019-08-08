@@ -102,7 +102,7 @@ if (require.main === module) {
                     d = data
                 })
 
-            console.log(d)
+            console.table(d)
         } else {
             console.log('not connect')
         }

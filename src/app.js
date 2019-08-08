@@ -35,7 +35,7 @@ const init = () => {
                 updateMinimalData()
             })
 
-        console.log(minimalData)
+        console.table(minimalData)
     }, 1000)
 }
 
