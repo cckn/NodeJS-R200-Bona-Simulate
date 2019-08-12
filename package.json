@@ -4,7 +4,8 @@
     "description": "",
     "main": "app.js",
     "scripts": {
-        "start": "nodemon --exec babel-node src/app.js --delay 1",
+        "start": "babel-node src/app.js",
+        "dev": "nodemon --exec babel-node src/app.js --delay 1",
         "mppt": "nodemon --exec babel-node src/mppt60.js --delay 1",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
